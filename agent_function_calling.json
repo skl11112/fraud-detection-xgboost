@@ -1,0 +1,289 @@
+{
+  "name": "detect_financial_fraud_risk",
+  "description": "财务舞弊风险检测工具。输入上市公司财务报表特征数据，返回舞弊风险概率、风险等级判定及 SHAP 可解释性分析。仅作为风险预警参考，不能直接定性财务舞弊。",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "features": {
+        "type": "object",
+        "description": "财务报表特征数据，键为特征名称，值为对应数值。必须包含模型所需的全部特征。",
+        "properties": {
+          "货币资金": {
+            "type": "number",
+            "description": "企业持有的货币资金金额（元）"
+          },
+          "应收账款净额": {
+            "type": "number",
+            "description": "应收账款净额（元）"
+          },
+          "存货": {
+            "type": "number",
+            "description": "存货金额（元）"
+          },
+          "流动资产合计": {
+            "type": "number",
+            "description": "流动资产合计金额（元）"
+          },
+          "固定资产净额": {
+            "type": "number",
+            "description": "固定资产净额（元）"
+          },
+          "无形资产": {
+            "type": "number",
+            "description": "无形资产金额（元）"
+          },
+          "资产总计": {
+            "type": "number",
+            "description": "资产总计金额（元）"
+          },
+          "流动负债合计": {
+            "type": "number",
+            "description": "流动负债合计金额（元）"
+          },
+          "负债合计": {
+            "type": "number",
+            "description": "负债合计金额（元）"
+          },
+          "实收资本_股本_": {
+            "type": "number",
+            "description": "实收资本（股本）金额（元）"
+          },
+          "盈余公积": {
+            "type": "number",
+            "description": "盈余公积金额（元）"
+          },
+          "未分配利润": {
+            "type": "number",
+            "description": "未分配利润金额（元）"
+          },
+          "股东权益合计": {
+            "type": "number",
+            "description": "股东权益合计金额（元）"
+          },
+          "营业总收入": {
+            "type": "number",
+            "description": "营业总收入金额（元）"
+          },
+          "营业成本": {
+            "type": "number",
+            "description": "营业成本金额（元）"
+          },
+          "销售费用": {
+            "type": "number",
+            "description": "销售费用金额（元）"
+          },
+          "管理费用": {
+            "type": "number",
+            "description": "管理费用金额（元）"
+          },
+          "财务费用": {
+            "type": "number",
+            "description": "财务费用金额（元）"
+          },
+          "投资收益": {
+            "type": "number",
+            "description": "投资收益金额（元）"
+          },
+          "资产减值损失": {
+            "type": "number",
+            "description": "资产减值损失金额（元）"
+          },
+          "营业利润": {
+            "type": "number",
+            "description": "营业利润金额（元）"
+          },
+          "利润总额": {
+            "type": "number",
+            "description": "利润总额金额（元）"
+          },
+          "所得税费用": {
+            "type": "number",
+            "description": "所得税费用金额（元）"
+          },
+          "净利润": {
+            "type": "number",
+            "description": "净利润金额（元）"
+          },
+          "归属于母公司净利润": {
+            "type": "number",
+            "description": "归属于母公司净利润金额（元）"
+          },
+          "经营活动现金净流量": {
+            "type": "number",
+            "description": "经营活动产生的现金流量净额（元）"
+          },
+          "支付的所得税": {
+            "type": "number",
+            "description": "实际支付的所得税金额（元）"
+          },
+          "销售商品收到的现金": {
+            "type": "number",
+            "description": "销售商品、提供劳务收到的现金（元）"
+          },
+          "投资活动现金净流量": {
+            "type": "number",
+            "description": "投资活动产生的现金流量净额（元）"
+          },
+          "筹资活动现金净流量": {
+            "type": "number",
+            "description": "筹资活动产生的现金流量净额（元）"
+          },
+          "审计缺失标志": {
+            "type": "integer",
+            "description": "审计缺失标志（0=无缺失，1=有缺失）"
+          },
+          "是否ST": {
+            "type": "integer",
+            "description": "是否被特别处理 ST（0=否，1=是）"
+          },
+          "违规状态": {
+            "type": "integer",
+            "description": "违规状态标记（0=无违规，1=有违规）"
+          },
+          "是否金融业": {
+            "type": "integer",
+            "description": "是否属于金融行业（0=否，1=是）"
+          },
+          "审计师通过": {
+            "type": "number",
+            "description": "审计师通过程度指标"
+          }
+        },
+        "required": [
+          "货币资金", "应收账款净额", "存货", "流动资产合计", "固定资产净额",
+          "无形资产", "资产总计", "流动负债合计", "负债合计", "实收资本_股本_",
+          "盈余公积", "未分配利润", "股东权益合计", "营业总收入", "营业成本",
+          "销售费用", "管理费用", "财务费用", "投资收益", "资产减值损失",
+          "营业利润", "利润总额", "所得税费用", "净利润", "归属于母公司净利润",
+          "经营活动现金净流量", "支付的所得税", "销售商品收到的现金",
+          "投资活动现金净流量", "筹资活动现金净流量", "审计缺失标志",
+          "是否ST", "违规状态", "是否金融业", "审计师通过"
+        ]
+      }
+    },
+    "required": ["features"]
+  },
+  "returns": {
+    "type": "object",
+    "properties": {
+      "risk_probability": {
+        "type": "number",
+        "description": "风险概率，取值范围 [0, 1]，越接近 1 表示舞弊风险越高"
+      },
+      "risk_result": {
+        "type": "string",
+        "enum": ["正常", "高风险"],
+        "description": "风险判定结果。阈值 0.5：概率 >= 0.5 判定为高风险"
+      },
+      "base_value": {
+        "type": "number",
+        "description": "模型基准值（SHAP expected value），所有样本 SHAP 值围绕此值波动"
+      },
+      "shap_explain": {
+        "type": "array",
+        "description": "各特征 SHAP 解释列表，每项包含特征名、特征值、SHAP 值",
+        "items": {
+          "type": "object",
+          "properties": {
+            "feature_name": {
+              "type": "string",
+              "description": "特征名称"
+            },
+            "feature_value": {
+              "type": "number",
+              "description": "特征原始输入值"
+            },
+            "shap_value": {
+              "type": "number",
+              "description": "SHAP 值。正值推动预测向高风险方向，负值推动向低风险方向"
+            },
+            "abs_shap_value": {
+              "type": "number",
+              "description": "SHAP 值绝对值，用于衡量该特征对预测的影响力大小"
+            }
+          }
+        }
+      },
+      "top_risk_factors": {
+        "type": "array",
+        "description": "Top 3 风险推动因素摘要",
+        "items": {
+          "type": "string"
+        }
+      },
+      "disclaimer": {
+        "type": "string",
+        "description": "免责声明：模型输出仅为风险预警参考，不能直接定性财务舞弊"
+      }
+    }
+  },
+  "endpoint": {
+    "url": "http://127.0.0.1:8000/predict_risk",
+    "method": "POST",
+    "content_type": "application/json"
+  },
+  "example_request": {
+    "features": {
+      "货币资金": 126502600.0,
+      "应收账款净额": 200006400.0,
+      "存货": 27909010.0,
+      "流动资产合计": 390770100.0,
+      "固定资产净额": 994114.0,
+      "无形资产": 402559400.0,
+      "资产总计": 1243401000.0,
+      "流动负债合计": 636817700.0,
+      "负债合计": 977009600.0,
+      "实收资本_股本_": 2661233000.0,
+      "盈余公积": 93161182.2,
+      "未分配利润": -4139021000.0,
+      "股东权益合计": 266391500.0,
+      "营业总收入": 353958000.0,
+      "营业成本": 304642400.0,
+      "销售费用": 0.0,
+      "管理费用": 35739850.0,
+      "财务费用": 24590968.0,
+      "投资收益": 38192410.0,
+      "资产减值损失": 0.0,
+      "营业利润": 35445890.0,
+      "利润总额": 34860500.0,
+      "所得税费用": -53491210.0,
+      "净利润": 88351720.0,
+      "归属于母公司净利润": 88351720.0,
+      "经营活动现金净流量": -41216814.2,
+      "支付的所得税": 11115347.57,
+      "销售商品收到的现金": 152357100.0,
+      "投资活动现金净流量": -74868860.0,
+      "筹资活动现金净流量": 31963820.0,
+      "审计缺失标志": 0,
+      "是否ST": 0,
+      "违规状态": 0,
+      "是否金融业": 0,
+      "审计师通过": 2.396839e-17
+    }
+  },
+  "example_response": {
+    "risk_probability": 0.723456,
+    "risk_result": "高风险",
+    "base_value": -1.2345,
+    "shap_explain": [
+      {
+        "feature_name": "未分配利润",
+        "feature_value": -4139021000.0,
+        "shap_value": 0.8523,
+        "abs_shap_value": 0.8523
+      },
+      {
+        "feature_name": "营业成本",
+        "feature_value": 304642400.0,
+        "shap_value": 0.4512,
+        "abs_shap_value": 0.4512
+      }
+    ],
+    "top_risk_factors": [
+      "未分配利润 (SHAP=+0.8523)",
+      "营业成本 (SHAP=+0.4512)",
+      "财务费用 (SHAP=+0.3201)"
+    ],
+    "disclaimer": "⚠️ 本模型输出仅为风险预警参考，不能直接定性财务舞弊。"
+  }
+}
