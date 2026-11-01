@@ -82,20 +82,20 @@ class PredictRequest(BaseModel):
 
 class SHAPExplainItem(BaseModel):
     """单个特征的 SHAP 解释"""
-    feature_name: str = Field(..., description="特征名称")
-    feature_value: float = Field(..., description="特征原始值")
-    shap_value: float = Field(..., description="SHAP 值（正值推动高风险，负值推动低风险）")
-    abs_shap_value: float = Field(..., description="SHAP 值绝对值")
+    特征名称: str = Field(..., description="特征名称")
+    特征值: float = Field(..., description="特征原始值")
+    SHAP值: float = Field(..., description="SHAP 值（正值推动高风险，负值推动低风险）")
+    SHAP绝对值: float = Field(..., description="SHAP 值绝对值")
 
 
 class PredictResponse(BaseModel):
     """预测响应"""
-    risk_probability: float = Field(..., description="风险概率 (0~1)")
-    risk_result: str = Field(..., description="风险判定结果: '高风险' 或 '正常'")
-    base_value: float = Field(..., description="模型基准值 (expected value)")
-    shap_explain: List[SHAPExplainItem] = Field(..., description="各特征 SHAP 解释列表")
-    top_risk_factors: List[str] = Field(default=[], description="Top 3 风险推动因素")
-    disclaimer: str = Field(
+    风险概率: float = Field(..., description="风险概率 (0~1)")
+    风险判定: str = Field(..., description="风险判定结果: '高风险' 或 '正常'")
+    模型基准值: float = Field(..., description="模型基准值 (expected value)")
+    SHAP解释: List[SHAPExplainItem] = Field(..., description="各特征 SHAP 解释列表")
+    主要风险因素: List[str] = Field(default=[], description="Top 3 风险推动因素")
+    免责声明: str = Field(
         default="⚠️ 本模型输出仅为风险预警参考，不能直接定性财务舞弊。",
         description="免责声明"
     )
@@ -103,27 +103,27 @@ class PredictResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """错误响应"""
-    error: str
-    detail: Optional[str] = None
+    错误: str
+    详情: Optional[str] = None
 
 
 @app.get("/")
 async def root():
     return {
-        "service": "财务舞弊风险检测 API",
-        "version": "1.0.0",
-        "status": "running",
-        "docs_url": "/docs",
-        "disclaimer": "模型输出仅为风险预警，不能直接定性财务舞弊。"
+        "服务名称": "财务舞弊风险检测 API",
+        "版本": "1.0.0",
+        "状态": "运行中",
+        "文档地址": "/docs",
+        "免责声明": "模型输出仅为风险预警，不能直接定性财务舞弊。"
     }
 
 
 @app.get("/health")
 async def health():
     return {
-        "status": "healthy",
-        "model_loaded": pipeline is not None,
-        "feature_count": len(feature_names) if feature_names else 0
+        "状态": "健康",
+        "模型已加载": pipeline is not None,
+        "特征数量": len(feature_names) if feature_names else 0
     }
 
 
@@ -131,8 +131,8 @@ async def health():
 async def get_features():
     """返回模型使用的特征列表"""
     return {
-        "feature_count": len(feature_names),
-        "feature_names": feature_names
+        "特征数量": len(feature_names),
+        "特征名称": feature_names
     }
 
 
@@ -176,25 +176,25 @@ async def predict_risk(request: PredictRequest):
         shap_explain_list = []
         for j, fname in enumerate(feature_names):
             shap_explain_list.append(SHAPExplainItem(
-                feature_name=fname,
-                feature_value=values[j],
-                shap_value=float(shap_vals[j]),
-                abs_shap_value=float(abs(shap_vals[j]))
+                特征名称=fname,
+                特征值=values[j],
+                SHAP值=float(shap_vals[j]),
+                SHAP绝对值=float(abs(shap_vals[j]))
             ))
 
         # 按 SHAP 绝对值排序，取 Top 3 风险因素
-        shap_explain_sorted = sorted(shap_explain_list, key=lambda x: x.abs_shap_value, reverse=True)
+        shap_explain_sorted = sorted(shap_explain_list, key=lambda x: x.SHAP绝对值, reverse=True)
         top_factors = [
-            f"{item.feature_name} (SHAP={item.shap_value:+.4f})"
+            f"{item.特征名称} (SHAP={item.SHAP值:+.4f})"
             for item in shap_explain_sorted[:3]
         ]
 
         return PredictResponse(
-            risk_probability=round(risk_prob, 6),
-            risk_result=risk_result,
-            base_value=round(base_val, 6),
-            shap_explain=shap_explain_list,
-            top_risk_factors=top_factors
+            风险概率=round(risk_prob, 6),
+            风险判定=risk_result,
+            模型基准值=round(base_val, 6),
+            SHAP解释=shap_explain_list,
+            主要风险因素=top_factors
         )
 
     except HTTPException:
@@ -217,12 +217,12 @@ async def batch_predict(requests: List[PredictRequest]):
             X_input = pd.DataFrame([values], columns=feature_names)
             risk_prob = float(pipeline.predict_proba(X_input)[0][1])
             results.append({
-                "risk_probability": round(risk_prob, 6),
-                "risk_result": "高风险" if risk_prob >= 0.5 else "正常"
+                "风险概率": round(risk_prob, 6),
+                "风险判定": "高风险" if risk_prob >= 0.5 else "正常"
             })
         except Exception as e:
-            results.append({"error": str(e)})
-    return {"results": results}
+            results.append({"错误": str(e)})
+    return {"结果": results}
 
 
 if __name__ == "__main__":

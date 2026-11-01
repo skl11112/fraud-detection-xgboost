@@ -166,52 +166,52 @@
   "returns": {
     "type": "object",
     "properties": {
-      "risk_probability": {
+      "风险概率": {
         "type": "number",
         "description": "风险概率，取值范围 [0, 1]，越接近 1 表示舞弊风险越高"
       },
-      "risk_result": {
+      "风险判定": {
         "type": "string",
         "enum": ["正常", "高风险"],
         "description": "风险判定结果。阈值 0.5：概率 >= 0.5 判定为高风险"
       },
-      "base_value": {
+      "模型基准值": {
         "type": "number",
         "description": "模型基准值（SHAP expected value），所有样本 SHAP 值围绕此值波动"
       },
-      "shap_explain": {
+      "SHAP解释": {
         "type": "array",
         "description": "各特征 SHAP 解释列表，每项包含特征名、特征值、SHAP 值",
         "items": {
           "type": "object",
           "properties": {
-            "feature_name": {
+            "特征名称": {
               "type": "string",
               "description": "特征名称"
             },
-            "feature_value": {
+            "特征值": {
               "type": "number",
               "description": "特征原始输入值"
             },
-            "shap_value": {
+            "SHAP值": {
               "type": "number",
               "description": "SHAP 值。正值推动预测向高风险方向，负值推动向低风险方向"
             },
-            "abs_shap_value": {
+            "SHAP绝对值": {
               "type": "number",
               "description": "SHAP 值绝对值，用于衡量该特征对预测的影响力大小"
             }
           }
         }
       },
-      "top_risk_factors": {
+      "主要风险因素": {
         "type": "array",
         "description": "Top 3 风险推动因素摘要",
         "items": {
           "type": "string"
         }
       },
-      "disclaimer": {
+      "免责声明": {
         "type": "string",
         "description": "免责声明：模型输出仅为风险预警参考，不能直接定性财务舞弊"
       }
@@ -262,28 +262,28 @@
     }
   },
   "example_response": {
-    "risk_probability": 0.723456,
-    "risk_result": "高风险",
-    "base_value": -1.2345,
-    "shap_explain": [
+    "风险概率": 0.723456,
+    "风险判定": "高风险",
+    "模型基准值": -1.2345,
+    "SHAP解释": [
       {
-        "feature_name": "未分配利润",
-        "feature_value": -4139021000.0,
-        "shap_value": 0.8523,
-        "abs_shap_value": 0.8523
+        "特征名称": "未分配利润",
+        "特征值": -4139021000.0,
+        "SHAP值": 0.8523,
+        "SHAP绝对值": 0.8523
       },
       {
-        "feature_name": "营业成本",
-        "feature_value": 304642400.0,
-        "shap_value": 0.4512,
-        "abs_shap_value": 0.4512
+        "特征名称": "营业成本",
+        "特征值": 304642400.0,
+        "SHAP值": 0.4512,
+        "SHAP绝对值": 0.4512
       }
     ],
-    "top_risk_factors": [
+    "主要风险因素": [
       "未分配利润 (SHAP=+0.8523)",
       "营业成本 (SHAP=+0.4512)",
       "财务费用 (SHAP=+0.3201)"
     ],
-    "disclaimer": "⚠️ 本模型输出仅为风险预警参考，不能直接定性财务舞弊。"
+    "免责声明": "⚠️ 本模型输出仅为风险预警参考，不能直接定性财务舞弊。"
   }
 }
