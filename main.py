@@ -23,7 +23,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# 全局变量：启动时加载
 pipeline = None
 xgb_model = None
 imputer = None
@@ -62,7 +61,7 @@ async def startup_event():
     load_model()
 
 
-class PredictRequest(BaseModel):
+class 预测请求(BaseModel):
     """请求体模型：输入特征值"""
     features: Dict[str, float] = Field(
         ...,
@@ -80,7 +79,7 @@ class PredictRequest(BaseModel):
         }
 
 
-class SHAPExplainItem(BaseModel):
+class SHAP解释项(BaseModel):
     """单个特征的 SHAP 解释"""
     特征名称: str = Field(..., description="特征名称")
     特征值: float = Field(..., description="特征原始值")
@@ -88,12 +87,12 @@ class SHAPExplainItem(BaseModel):
     SHAP绝对值: float = Field(..., description="SHAP 值绝对值")
 
 
-class PredictResponse(BaseModel):
+class 预测响应(BaseModel):
     """预测响应"""
     风险概率: float = Field(..., description="风险概率 (0~1)")
     风险判定: str = Field(..., description="风险判定结果: '高风险' 或 '正常'")
     模型基准值: float = Field(..., description="模型基准值 (expected value)")
-    SHAP解释: List[SHAPExplainItem] = Field(..., description="各特征 SHAP 解释列表")
+    SHAP解释: List[SHAP解释项] = Field(..., description="各特征 SHAP 解释列表")
     主要风险因素: List[str] = Field(default=[], description="Top 3 风险推动因素")
     免责声明: str = Field(
         default="⚠️ 本模型输出仅为风险预警参考，不能直接定性财务舞弊。",
@@ -101,14 +100,15 @@ class PredictResponse(BaseModel):
     )
 
 
-class ErrorResponse(BaseModel):
+class 错误响应(BaseModel):
     """错误响应"""
     错误: str
     详情: Optional[str] = None
 
 
-@app.get("/")
+@app.get("/", summary="服务状态")
 async def root():
+    """返回服务基本信息"""
     return {
         "服务名称": "财务舞弊风险检测 API",
         "版本": "1.0.0",
@@ -118,8 +118,9 @@ async def root():
     }
 
 
-@app.get("/health")
+@app.get("/health", summary="健康检查")
 async def health():
+    """检查服务运行状态和模型加载情况"""
     return {
         "状态": "健康",
         "模型已加载": pipeline is not None,
@@ -127,17 +128,18 @@ async def health():
     }
 
 
-@app.get("/features")
+@app.get("/features", summary="获取特征列表")
 async def get_features():
-    """返回模型使用的特征列表"""
+    """返回模型使用的全部特征名称"""
     return {
         "特征数量": len(feature_names),
         "特征名称": feature_names
     }
 
 
-@app.post("/predict_risk", response_model=PredictResponse, responses={400: {"model": ErrorResponse}})
-async def predict_risk(request: PredictRequest):
+@app.post("/predict_risk", response_model=预测响应, summary="风险预测",
+          responses={400: {"model": 错误响应}})
+async def predict_risk(request: 预测请求):
     """
     财务舞弊风险预测接口
 
@@ -159,37 +161,32 @@ async def predict_risk(request: PredictRequest):
         values = [float(input_features[f]) for f in feature_names]
         X_input = pd.DataFrame([values], columns=feature_names)
 
-        # Pipeline 预处理
         X_processed = scaler.transform(imputer.transform(X_input))
 
-        # 预测
         risk_prob = float(pipeline.predict_proba(X_input)[0][1])
         threshold = 0.5
         risk_result = "高风险" if risk_prob >= threshold else "正常"
 
-        # 实时计算 SHAP 值（每个样本单独计算）
         sample_explainer = shap.TreeExplainer(xgb_model)
         shap_vals = sample_explainer.shap_values(X_processed)[0]
         base_val = float(sample_explainer.expected_value)
 
-        # 组装 SHAP 解释
         shap_explain_list = []
         for j, fname in enumerate(feature_names):
-            shap_explain_list.append(SHAPExplainItem(
+            shap_explain_list.append(SHAP解释项(
                 特征名称=fname,
                 特征值=values[j],
                 SHAP值=float(shap_vals[j]),
                 SHAP绝对值=float(abs(shap_vals[j]))
             ))
 
-        # 按 SHAP 绝对值排序，取 Top 3 风险因素
         shap_explain_sorted = sorted(shap_explain_list, key=lambda x: x.SHAP绝对值, reverse=True)
         top_factors = [
             f"{item.特征名称} (SHAP={item.SHAP值:+.4f})"
             for item in shap_explain_sorted[:3]
         ]
 
-        return PredictResponse(
+        return 预测响应(
             风险概率=round(risk_prob, 6),
             风险判定=risk_result,
             模型基准值=round(base_val, 6),
@@ -207,9 +204,9 @@ async def predict_risk(request: PredictRequest):
         )
 
 
-@app.post("/batch_predict")
-async def batch_predict(requests: List[PredictRequest]):
-    """批量预测接口"""
+@app.post("/batch_predict", summary="批量预测")
+async def batch_predict(requests: List[预测请求]):
+    """批量预测接口，支持同时预测多个样本"""
     results = []
     for req in requests:
         try:
